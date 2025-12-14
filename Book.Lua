@@ -5,6 +5,7 @@ local split --for finding the first split in the file
 local quantity = 0 --for finding the amount of books we have
 local file --for making the file
 local i = 1 
+--local q = 0
 
 --describes a book class
 Book = {
@@ -42,37 +43,33 @@ function book_data:load()
 	
 	--makes sure file exists
 	if file then
-		io.write("")
-	else
-		return "error"
-	end 
+		--understands what books are in the file
+		for lines in file:lines() do 
+			title, author, year = lines:match("(%b{})(%b{})(%b{})") 
+			i = i + 1
 
-	--skips over the first line
-	file:read("*l")
+			local title1 = string.sub(title, 2, #title-1)
+			local author1 = string.sub(author, #author-(#author-2), #author-1)
+			local year1 = string.sub(year, #year-4, #year-1)
 
-	--removes the first book entry
-	for i = 1, #self do
-		if type(i) == "number" then
-			table.remove(self, 1)
+			table.insert(titles, title1)
+			table.insert(authors, author1)
+			table.insert(years, year1)
+
+			--adds book to table
+			table.insert(self, Book:new(title1, author1, year1))
 		end
-	end
+	else
+		io.write("error\nPlease import the book file. Can you do this? Yes or No\n")
+		io.flush()
+		local answer = io.read()
 
-	--understands what books are in the file
-	for lines in file:lines() do 
-		title, author, year = lines:match("(%b{})(%b{})(%b{})") 
-		i = i + 1
-
-		local title1 = string.sub(title, 2, #title-1)
-		local author1 = string.sub(author, #author-(#author-2), #author-1)
-		local year1 = string.sub(year, #year-4, #year-1)
-
-		table.insert(titles, title1)
-		table.insert(authors, author1)
-		table.insert(years, year1)
-
-		--adds book to table
-		table.insert(self, Book:new(title1, author1, year1))
-	end
+		if string.lower(answer) == "yes" then
+			io.write("Thank you.")
+		elseif string.lower(answer) == "no" then
+			io.write("\nThis file doesn't exist\nFor help, reach out for help at: railya.farakhova@ht-la.org")
+		end
+	end 
 
 	--closes the file
 	file:close()
@@ -228,9 +225,6 @@ end
 
 --prints all of the books for the user (UI)
 function book_data:list()
-	if x == "error" then
-		io.write("")
-	else
 		character = "-"
 		length = 111 --calculated length needed to fit titles and authors
 
@@ -253,15 +247,12 @@ function book_data:list()
 
 		--makes a title column
 		io.write("\nTitles")
-		for p = 0, #titles-60 do
+		for p = 0, #titles-5 do
 			io.write(" ")
 		end
 
 		--makes an author colum
 		io.write("Authors")
-		for p = 0, #authors-4 do
-			io.write(" ")
-		end
 
 		--prints out info from the amount of elements in the table (quantity)
 		for m = 1, #titles do
@@ -271,15 +262,18 @@ function book_data:list()
 				local split = string.sub(titles[m], 1, 43)
 				local split2 = string.sub(titles[m], 44, #titles[m])
 				io.write("\n"..split.."-")
-				for n = 1, #titles-54-#split do
+				for n = 1, #titles+1-#split do
 					io.write(".")
 				end
 				io.write(authors[m].."\n-"..split2)
+				for n = 1, #titles+1-#split2 do
+					io.write(".")
+				end
 			else
 				io.write("\n",titles[m])
 
 				--maintains the space between titles and authors
-				for r = 1, #titles-53 - #titles[m] do
+				for r = 1, #titles+2- #titles[m] do
 					io.write(".")
 				end 
 
@@ -287,10 +281,9 @@ function book_data:list()
 				if #authors[m] > 42 then
 					local split = string.sub(authors[m], 1, 42)
 					local split2 = string.sub(authors[m], 43, 82)
-					--local split3 = string.sub(authors[m], 61, 80)
 
 					io.write(split.."-\n")
-					for k = 1, 67 do
+					for k = 1, 63 do
 						io.write(".")
 					end
 					io.write("-"..split2)
@@ -298,7 +291,7 @@ function book_data:list()
 					if #authors[m] > 82 then
 						split3 = string.sub(authors[m], 83, 122)
 						io.write("-\n")
-						for k = 1, 67 do
+						for k = 1, 63 do
 							io.write(".")
 						end
 						io.write("-"..split3)
@@ -306,7 +299,7 @@ function book_data:list()
 						if #authors[m] > 122 then
 							split4 = string.sub(authors[m], 123, 162)
 							io.write("-\n")
-							for k = 1, 67 do
+							for k = 1, 63 do
 								io.write(".")
 							end
 							io.write("-"..split4)
@@ -326,7 +319,6 @@ function book_data:list()
 		for k = 0, length do
 			io.write(character)
 		end 
-	end
 end 
 	
 --lists books based on title or author with indexes
@@ -338,13 +330,13 @@ function book_data:read()
 
 	--finds all titles
 	if string.lower(answer) == "title" then
-		for i = 1, #titles do
-			io.write("\n"..i.." "..titles[i])
+		for m = 1, #titles do
+			io.write("\n"..m.." "..titles[m])
 		end 
 	--finds all authors
 	elseif string.lower(answer) == "author" then
-		for i = 1, #authors do
-			io.write("\n"..i.." "..authors[i])
+		for m = 1, #authors do
+			io.write("\n"..m.." "..authors[m])
 		end
 	end
 end
@@ -362,7 +354,6 @@ function book_data.delete_book()
 	--returns the new book in that location
 	io.write("\nNow book " ..digit.. " is: \n"..titles[digit].." "..authors[digit].." "..years[digit])
 end
-
 	
 function book_data.update_book() 
 	io.input(io.stdin)
@@ -519,7 +510,6 @@ function execute()
 			book_data.save()
 
 		elseif string.lower(user) == "import" then
-			::CHECK::
 			local x=book_data:load()
 			if x == "error" then
 				io.write("Please import the book file. Can you do this? Yes or No\n")
@@ -529,12 +519,12 @@ function execute()
 				if string.lower(answer) == "yes" then
 					io.write("Thank you.\n")
 					book_data:import()
-					goto CHECK
+					
 				elseif string.lower(answer) == "no" then
 					io.write("\nThis file doesn't exist\nFor help, reach out for help at: railya.farakhova@ht-la.org")
 				end
 			else
-				book_data:load()
+				book_data:load() 
 			end	
 		end
 
@@ -551,20 +541,7 @@ function execute()
 		end
 end 
 
-x=book_data:load()
-if x == "error" then
-	io.write("Please import the book file. Can you do this? Yes or No\n")
-	io.flush()
-	local answer = io.read()
-	if string.lower(answer) == "yes" then
-		io.write("Thank you.")
-		book_data:import()
-	elseif string.lower(answer) == "no" then
-		io.write("\nThis file doesn't exist\nFor help, reach out for help at: railya.farakhova@ht-la.org")
-	end
-else 
-	book_data:load()
-end
+book_data:load()
 book_data:list()
 execute()
 
